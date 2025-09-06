@@ -24,6 +24,13 @@ async def on_command_error(event: interactions.events.CommandError):
 pc.setup(bot, default_prefix = "!!") 
 names = []
 
+
+def command_factory(name, content):
+    async def command(ctx: pc.PrefixedContext):
+        await ctx.send(content)
+    
+    return pc.prefixed_command(name=name)(command)
+
 for item in os.scandir(dirPath+"/answers/"):
     if os.path.isfile(f"answers/{item.name}"):
         with open(f"answers/{item.name}", "r", encoding="utf-8") as f:
@@ -36,12 +43,7 @@ for item in os.scandir(dirPath+"/answers/"):
             description = match.group(1) if match else ""
             names.append({"name": name, "description": description})
             content = f.read()
-            command = f"""
-@pc.prefixed_command(name="{name}")
-async def {name}(ctx: pc.PrefixedContext):
-    await ctx.send(\"\"\"{content}\"\"\")
-            """
-            exec(command, globals())
+            globals()[name] = command_factory(name, content)
 
         
 @pc.prefixed_command(name="list")
