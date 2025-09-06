@@ -22,16 +22,20 @@ async def on_command_error(event: interactions.events.CommandError):
     await event.ctx.send("Encountered an error!")
 
 pc.setup(bot, default_prefix = "!!") 
+names = []
 
 for item in os.scandir(dirPath+"/answers/"):
     if os.path.isfile(f"answers/{item.name}"):
         with open(f"answers/{item.name}", "r", encoding="utf-8") as f:
             first_line = f.readline()
+            second_line = f.readline()
             # Extract the name from the HTML comment on the first line
             match = re.match(r"\s*<!--\s*(.*?)\s*-->\s*", first_line)
             name = match.group(1) if match else ""
+            match = re.match(r"\s*<!--\s*(.*?)\s*-->\s*", second_line)
+            description = match.group(1) if match else ""
+            names.append({"name": name, "description": description})
             content = f.read()
-
             command = f"""
 @pc.prefixed_command(name="{name}")
 async def {name}(ctx: pc.PrefixedContext):
@@ -40,7 +44,12 @@ async def {name}(ctx: pc.PrefixedContext):
             exec(command, globals())
 
         
-
+@pc.prefixed_command(name="list")
+async def list_commands(ctx: pc.PrefixedContext):
+    response = "Available commands:\n"
+    for item in names:
+        response += f"**!!{item['name']}** - {item['description']}\n"
+    await ctx.send(response)
         
 
 
