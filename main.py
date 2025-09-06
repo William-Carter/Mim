@@ -32,11 +32,13 @@ for item in os.scandir(dirPath+"/answers/"):
             name = match.group(1) if match else ""
             content = f.read()
 
-        @pc.prefixed_command(name=name)
-        async def answer_command(ctx: pc.PrefixedContext):
-            await ctx.send(content)
+            command = f"""
+@pc.prefixed_command(name="{name}")
+async def {name}(ctx: pc.PrefixedContext):
+    await ctx.send(\"\"\"{content}\"\"\")
+            """
+            exec(command, globals())
 
-        answer_command.__name__ = name
         
 
         
