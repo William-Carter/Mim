@@ -1,4 +1,4 @@
-<!--+strafe-->
+<!--strafe-->
 ### How to perform a +strafe AFH
 The most common way to perform an AFH is by using the **Strafe Modifier** bind to give a small backwards input.
 You can bind this from the menu or via the console with the command `bind <key> +strafe`
