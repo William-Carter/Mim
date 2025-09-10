@@ -49,7 +49,7 @@ for item in os.scandir(dirPath+"/answers/"):
 @pc.prefixed_command(name="list")
 async def list_commands(ctx: pc.PrefixedContext):
     response = "Available commands:\n"
-    for item in names:
+    for item in sorted(names, key=lambda x: x['name'].lower()):
         response += f"**!!{item['name']}** - {item['description']}\n"
     await ctx.send(response)
         
