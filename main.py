@@ -36,21 +36,33 @@ for item in os.scandir(dirPath+"/answers/"):
         with open(f"answers/{item.name}", "r", encoding="utf-8") as f:
             first_line = f.readline()
             second_line = f.readline()
-            # Extract the name from the HTML comment on the first line
+            third_line = f.readline()
+
             match = re.match(r"\s*<!--\s*(.*?)\s*-->\s*", first_line)
             name = match.group(1) if match else ""
+
             match = re.match(r"\s*<!--\s*(.*?)\s*-->\s*", second_line)
             description = match.group(1) if match else ""
-            names.append({"name": name, "description": description})
+
+            match = re.match(r"\s*<!--\s*(.*?)\s*-->\s*", third_line)
+            aliases = match.group(1) if match else ""
+
+            names.append({"name": name, "description": description, "aliases": aliases})
             content = f.read()
             globals()[name] = command_factory(name, content)
+            if aliases != "":
+                for entry in aliases.split(", "):
+                    globals()[entry] = command_factory(entry, content)
 
         
 @pc.prefixed_command(name="list")
 async def list_commands(ctx: pc.PrefixedContext):
     response = "Available commands:\n"
     for item in sorted(names, key=lambda x: x['name'].lower()):
-        response += f"**!!{item['name']}** - {item['description']}\n"
+        if item['aliases'] != "":
+            response += f"**!!{item['name']} (or {item['aliases']})** - {item['description']}\n" # unsure if this needs to be different
+        else: 
+            response += f"**!!{item['name']}** - {item['description']}\n"
     await ctx.send(response)
         
 
