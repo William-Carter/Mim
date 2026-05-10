@@ -1,4 +1,5 @@
 import interactions
+import interactions.ext.prefixed_commands as pc
 import logging
 import os
 import json
@@ -18,6 +19,12 @@ logging.basicConfig(
 logger = logging.getLogger("mim")
 logger.setLevel(logging.INFO)
 
+@interactions.listen()
+async def on_command_error(event: interactions.events.CommandError):
+    await event.ctx.send("Encountered an error!")
+
+pc.setup(bot, default_prefix = "!!") 
+names = []
 
 
 @interactions.listen()
@@ -42,7 +49,11 @@ class Answer:
         ])
         self.body = fp.read()
 
-
+def command_factory(name, content):
+    async def command(ctx: pc.PrefixedContext):
+        await ctx.send(content)
+    
+    return pc.prefixed_command(name=name)(command)
 
 
 answers = []
@@ -50,6 +61,16 @@ answers = []
 for item in os.scandir(dirPath+"/answers/"):
     if os.path.isfile(f"answers/{item.name}"):
         with open(f"answers/{item.name}", "r", encoding="utf-8") as f:
+            first_line = f.readline()
+            second_line = f.readline()
+            # Extract the name from the HTML comment on the first line
+            match = re.match(r"\s*<!--\s*(.*?)\s*-->\s*", first_line)
+            name = match.group(1) if match else ""
+            match = re.match(r"\s*<!--\s*(.*?)\s*-->\s*", second_line)
+            description = match.group(1) if match else ""
+            names.append({"name": name, "description": description})
+            content = f.read()
+            globals()[name] = command_factory(name, content)
             answers.append(Answer(f))
 
 
@@ -82,6 +103,14 @@ async def autocomplete(ctx: interactions.AutocompleteContext):
         choices = [{"name": answer.name + " - " + answer.description, "value": answer.name} for answer in answers]
         await ctx.send(choices=choices)
         return
+
+@pc.prefixed_command(name="list")
+async def list_commands(ctx: pc.PrefixedContext):
+    response = "Available commands:\n"
+    for item in sorted(names, key=lambda x: x['name'].lower()):
+        response += f"**!!{item['name']}** - {item['description']}\n"
+    await ctx.send(response)
+        
 
     results = []
 
