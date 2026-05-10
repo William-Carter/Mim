@@ -133,3 +133,7 @@ with open(dirPath+"/config.json", "r") as f:
     token = data["token"]
 
 bot.start(token)
+
+# fuck it we ball
+# fuck it we ball
+# fuck it we ball
